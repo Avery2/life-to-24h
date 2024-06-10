@@ -37,7 +37,6 @@
             height: 50px;
             background: yellow;
             border-radius: 50%;
-            transition: all 1s ease-in-out;
         }
     </style>
     <link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css">
@@ -99,7 +98,7 @@
             const centerY = sky.clientHeight; // Bottom of the sky container
             const radius = sky.clientHeight; // Radius should be half of the sky height
 
-            const sunPositionX = centerX + radius * Math.cos(sunAngle);
+            const sunPositionX = centerX - radius * Math.cos(sunAngle);
             const sunPositionY = centerY - radius * Math.sin(sunAngle);
 
             sun.style.left = `${sunPositionX}px`;
