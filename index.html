@@ -13,12 +13,31 @@
         .container {
             max-width: 70vw;
             margin: 0 auto;
+            position: relative;
         }
         .slider {
             width: 100%;
         }
         .buttons {
             margin: 20px 0;
+        }
+        .sky {
+            position: relative;
+            width: 100%;
+            height: 300px;
+            background: linear-gradient(to top, #87CEEB, #ffffff);
+            overflow: hidden;
+        }
+        .sun {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 50px;
+            background: yellow;
+            border-radius: 50%;
+            transition: all 1s ease-in-out;
         }
     </style>
     <link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css">
@@ -42,6 +61,9 @@
         <div>
             <h2>Current Time: <span id="current-time">12:00 PM</span></h2>
         </div>
+        <div class="sky">
+            <div class="sun" id="sun"></div>
+        </div>
     </div>
 
     <script>
@@ -49,6 +71,7 @@
         const currentAgeSlider = document.getElementById('current-age');
         const currentAgeValue = document.getElementById('current-age-value');
         const currentTimeDisplay = document.getElementById('current-time');
+        const sun = document.getElementById('sun');
 
         function updateCurrentTime() {
             const maxLife = parseInt(maxLifeInput.value);
@@ -63,6 +86,15 @@
             const displayMinutes = minutes.toString().padStart(2, '0');
 
             currentTimeDisplay.textContent = `${displayHours}:${displayMinutes} ${ampm}`;
+
+            updateSunPosition(timeInMinutes);
+        }
+
+        function updateSunPosition(timeInMinutes) {
+            const percentageOfDay = timeInMinutes / 1440;
+            const sunPositionX = percentageOfDay * 100; // Sun moves from 0% to 100% across the screen
+
+            sun.style.left = `${sunPositionX}%`;
         }
 
         function setMaxLife(years) {
