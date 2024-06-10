@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lifetime to 24-hour Day Mapping</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .slider {
+            width: 100%;
+        }
+        .buttons {
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Map Lifetime to 24-hour Day</h1>
+        <div>
+            <label for="max-life">Max Life (Years): </label>
+            <input type="number" id="max-life" value="80" min="1" max="150" step="1">
+        </div>
+        <div class="buttons">
+            <button onclick="setMaxLife(70)">70 years</button>
+            <button onclick="setMaxLife(80)">80 years</button>
+            <button onclick="setMaxLife(90)">90 years</button>
+        </div>
+        <div>
+            <label for="current-age">Current Age: <span id="current-age-value">40</span></label>
+            <input type="range" id="current-age" class="slider" value="40" min="0" max="80">
+        </div>
+        <div>
+            <h2>Current Time: <span id="current-time">12:00 PM</span></h2>
+        </div>
+    </div>
+
+    <script>
+        const maxLifeInput = document.getElementById('max-life');
+        const currentAgeSlider = document.getElementById('current-age');
+        const currentAgeValue = document.getElementById('current-age-value');
+        const currentTimeDisplay = document.getElementById('current-time');
+
+        function updateCurrentTime() {
+            const maxLife = parseInt(maxLifeInput.value);
+            const currentAge = parseInt(currentAgeSlider.value);
+
+            const timeInMinutes = (currentAge / maxLife) * 1440;
+            const hours = Math.floor(timeInMinutes / 60);
+            const minutes = Math.floor(timeInMinutes % 60);
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+
+            const displayHours = hours % 12 || 12;
+            const displayMinutes = minutes.toString().padStart(2, '0');
+
+            currentTimeDisplay.textContent = `${displayHours}:${displayMinutes} ${ampm}`;
+        }
+
+        function setMaxLife(years) {
+            maxLifeInput.value = years;
+            currentAgeSlider.max = years;
+            updateCurrentTime();
+        }
+
+        maxLifeInput.addEventListener('input', () => {
+            currentAgeSlider.max = maxLifeInput.value;
+            updateCurrentTime();
+        });
+
+        currentAgeSlider.addEventListener('input', () => {
+            currentAgeValue.textContent = currentAgeSlider.value;
+            updateCurrentTime();
+        });
+
+        // Initialize display
+        updateCurrentTime();
+    </script>
+</body>
+</html>
+
