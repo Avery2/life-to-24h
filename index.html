@@ -72,13 +72,30 @@
         const currentTimeDisplay = document.getElementById('current-time');
         const sun = document.getElementById('sun');
 
+        const sunriseHour = 6; // 6 AM
+        const sunsetHour = 20.5; // 8:30 PM
+        const activeDayMinutes = (sunsetHour - sunriseHour) * 60; // Total active minutes in the day
+
         function updateCurrentTime() {
             const maxLife = parseInt(maxLifeInput.value);
             const currentAge = parseInt(currentAgeSlider.value);
 
-            const timeInMinutes = (currentAge / maxLife) * 1440;
-            const hours = Math.floor(timeInMinutes / 60);
-            const minutes = Math.floor(timeInMinutes % 60);
+            // Map the current age to the 24-hour day period (0 to 1440 minutes)
+            const totalDayMinutes = 1440;
+            const sliderTimeInMinutes = (currentAge / maxLife) * totalDayMinutes;
+
+            // Map the slider time to the active day period (6 AM to 8:30 PM)
+            let activeTimeInMinutes;
+            if (sliderTimeInMinutes < sunriseHour * 60) {
+                activeTimeInMinutes = 0;
+            } else if (sliderTimeInMinutes > sunsetHour * 60) {
+                activeTimeInMinutes = activeDayMinutes;
+            } else {
+                activeTimeInMinutes = sliderTimeInMinutes - sunriseHour * 60;
+            }
+
+            const hours = Math.floor(sliderTimeInMinutes / 60);
+            const minutes = Math.floor(sliderTimeInMinutes % 60);
             const ampm = hours >= 12 ? 'PM' : 'AM';
 
             const displayHours = hours % 12 || 12;
@@ -86,11 +103,11 @@
 
             currentTimeDisplay.textContent = `${displayHours}:${displayMinutes} ${ampm}`;
 
-            updateSunPosition(timeInMinutes);
+            updateSunPosition(activeTimeInMinutes);
         }
 
-        function updateSunPosition(timeInMinutes) {
-            const percentageOfDay = timeInMinutes / 1440;
+        function updateSunPosition(activeTimeInMinutes) {
+            const percentageOfDay = activeTimeInMinutes / activeDayMinutes;
             const sunAngle = percentageOfDay * Math.PI; // Angle in radians from 0 to Pi (half circle)
 
             const sky = document.querySelector('.sky');
