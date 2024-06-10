@@ -92,9 +92,18 @@
 
         function updateSunPosition(timeInMinutes) {
             const percentageOfDay = timeInMinutes / 1440;
-            const sunPositionX = percentageOfDay * 100; // Sun moves from 0% to 100% across the screen
+            const sunAngle = percentageOfDay * Math.PI; // Angle in radians from 0 to Pi (half circle)
 
-            sun.style.left = `${sunPositionX}%`;
+            const sky = document.querySelector('.sky');
+            const centerX = sky.clientWidth / 2;
+            const centerY = sky.clientHeight; // Bottom of the sky container
+            const radius = sky.clientHeight; // Radius should be half of the sky height
+
+            const sunPositionX = centerX + radius * Math.cos(sunAngle);
+            const sunPositionY = centerY - radius * Math.sin(sunAngle);
+
+            sun.style.left = `${sunPositionX}px`;
+            sun.style.top = `${sunPositionY}px`;
         }
 
         function setMaxLife(years) {
