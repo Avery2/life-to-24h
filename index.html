@@ -11,8 +11,9 @@
             margin: 20px;
         }
         .container {
-            max-width: 600px;
+            max-width: 70vw;
             margin: 0 auto;
+            position: relative;
         }
         .slider {
             width: 100%;
@@ -20,7 +21,26 @@
         .buttons {
             margin: 20px 0;
         }
+        .sky {
+            bottom: 0;
+            position: absolute;
+            width: 100vw;
+            height: 300px;
+            background: linear-gradient(to top, #87CEEB, #ffffff);
+            overflow: hidden;
+        }
+        .sun {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 50px;
+            background: yellow;
+            border-radius: 50%;
+        }
     </style>
+    <link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css">
 </head>
 <body>
     <div class="container">
@@ -35,12 +55,15 @@
             <button onclick="setMaxLife(90)">90 years</button>
         </div>
         <div>
-            <label for="current-age">Current Age: <span id="current-age-value">40</span></label>
-            <input type="range" id="current-age" class="slider" value="40" min="0" max="80">
+            <label for="current-age">Current Age: <span id="current-age-value">0</span></label>
+            <input type="range" id="current-age" class="slider" value="0" min="0" max="80">
         </div>
         <div>
-            <h2>Current Time: <span id="current-time">12:00 PM</span></h2>
+            <h2>Current Time: <span id="current-time">12:00 AM</span></h2>
         </div>
+    </div>
+    <div class="sky">
+        <div class="sun" id="sun"></div>
     </div>
 
     <script>
@@ -48,20 +71,109 @@
         const currentAgeSlider = document.getElementById('current-age');
         const currentAgeValue = document.getElementById('current-age-value');
         const currentTimeDisplay = document.getElementById('current-time');
+        const sun = document.getElementById('sun');
+
+        const sunriseHour = 6; // 6 AM
+        const sunsetHour = 20.5; // 8:30 PM
+        const activeDayMinutes = (sunsetHour - sunriseHour) * 60; // Total active minutes in the day
+
+        function getGradientColors(timeInMinutes) {
+            const times = [
+                { time: 0, colors: ["#000000", "#000033"] },
+                { time: 240, colors: ["#000011", "#000044"] },
+                { time: 500, colors: ["#FF4500", "#FFD700"] },
+                { time: 680, colors: ["#87CEEB", "#FFFFFF"] },
+                { time: 780, colors: ["#87CEEB", "#FFFFFF"] },
+                { time: 960, colors: ["#87CEEB", "#FFFFFF"] },
+                { time: 1170, colors: ["#FFD700", "#FF4500"] },
+                { time: 1440, colors: ["#000000", "#000033"] },
+            ];
+
+            function interpolateColor(color1, color2, factor) {
+                const hex = (color) => parseInt(color.slice(1), 16);
+                const r = (color) => (color >> 16) & 0xff;
+                const g = (color) => (color >> 8) & 0xff;
+                const b = (color) => color & 0xff;
+                const color1Hex = hex(color1);
+                const color2Hex = hex(color2);
+                const resultR = Math.round(r(color1Hex) + factor * (r(color2Hex) - r(color1Hex)));
+                const resultG = Math.round(g(color1Hex) + factor * (g(color2Hex) - g(color1Hex)));
+                const resultB = Math.round(b(color1Hex) + factor * (b(color2Hex) - b(color1Hex)));
+                return `#${((1 << 24) + (resultR << 16) + (resultG << 8) + resultB).toString(16).slice(1)}`;
+            }
+
+            function blendColors(time) {
+                let prev = times[0];
+                let next = times[times.length - 1];
+                for (let i = 0; i < times.length - 1; i++) {
+                    if (time >= times[i].time && time <= times[i + 1].time) {
+                        prev = times[i];
+                        next = times[i + 1];
+                        break;
+                    }
+                }
+
+                const factor = Math.abs(time - prev.time) / (next.time - prev.time);
+                const color1 = interpolateColor(prev.colors[0], next.colors[0], factor);
+                const color2 = interpolateColor(prev.colors[1], next.colors[1], factor);
+                return [color1, color2];
+            }
+
+            return blendColors(timeInMinutes);
+        }
+
+        function updateSkyColor(timeInMinutes) {
+            const sky = document.querySelector('.sky');
+            getGradientColors(timeInMinutes);
+            const [color1, color2] = getGradientColors(timeInMinutes);
+            sky.style.background = `linear-gradient(to top, ${color1}, ${color2})`;
+        }
 
         function updateCurrentTime() {
             const maxLife = parseInt(maxLifeInput.value);
             const currentAge = parseInt(currentAgeSlider.value);
 
-            const timeInMinutes = (currentAge / maxLife) * 1440;
-            const hours = Math.floor(timeInMinutes / 60);
-            const minutes = Math.floor(timeInMinutes % 60);
+            // Map the current age to the 24-hour day period (0 to 1440 minutes)
+            const totalDayMinutes = 1440;
+            const sliderTimeInMinutes = (currentAge / maxLife) * totalDayMinutes;
+
+            // Map the slider time to the active day period (6 AM to 8:30 PM)
+            let activeTimeInMinutes;
+            if (sliderTimeInMinutes < sunriseHour * 60) {
+                activeTimeInMinutes = 0;
+            } else if (sliderTimeInMinutes > sunsetHour * 60) {
+                activeTimeInMinutes = activeDayMinutes;
+            } else {
+                activeTimeInMinutes = sliderTimeInMinutes - sunriseHour * 60;
+            }
+
+            const hours = Math.floor(sliderTimeInMinutes / 60);
+            const minutes = Math.floor(sliderTimeInMinutes % 60);
             const ampm = hours >= 12 ? 'PM' : 'AM';
 
             const displayHours = hours % 12 || 12;
             const displayMinutes = minutes.toString().padStart(2, '0');
 
             currentTimeDisplay.textContent = `${displayHours}:${displayMinutes} ${ampm}`;
+
+            updateSunPosition(activeTimeInMinutes);
+            updateSkyColor(sliderTimeInMinutes);
+        }
+
+        function updateSunPosition(activeTimeInMinutes) {
+            const percentageOfDay = activeTimeInMinutes / activeDayMinutes;
+            const sunAngle = percentageOfDay * Math.PI; // Angle in radians from 0 to Pi (half circle)
+
+            const sky = document.querySelector('.sky');
+            const centerX = sky.clientWidth / 2;
+            const centerY = sky.clientHeight; // Bottom of the sky container
+            const radius = sky.clientHeight; // Radius should be half of the sky height
+
+            const sunPositionX = centerX - radius * Math.cos(sunAngle);
+            const sunPositionY = centerY - radius * Math.sin(sunAngle);
+
+            sun.style.left = `${sunPositionX}px`;
+            sun.style.top = `${sunPositionY}px`;
         }
 
         function setMaxLife(years) {
@@ -85,4 +197,3 @@
     </script>
 </body>
 </html>
-
