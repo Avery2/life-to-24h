@@ -78,26 +78,15 @@
         const activeDayMinutes = (sunsetHour - sunriseHour) * 60; // Total active minutes in the day
 
         function getGradientColors(timeInMinutes) {
-            const sunriseHour = 6;
-            const sunsetHour = 20.5;
-
-            const nightStart = 0;
-            const nightEnd = sunriseHour * 60;
-            const sunriseStart = sunriseHour * 60;
-            // const sunriseEnd = (sunriseHour + 1) * 60;
-            const dayStart = (sunriseHour + 1) * 60;
-            const dayEnd = (sunsetHour - 1) * 60;
-            const sunsetStart = (sunsetHour - 1) * 60;
-            // const sunsetEnd = sunsetHour * 60;
-            const nightEnd2 = 24 * 60;
-
             const times = [
-                { time: nightStart, colors: ["#000000", "#000033"] },
-                { time: sunriseStart, colors: ["#FF4500", "#FFD700"] },
-                { time: dayStart, colors: ["#87CEEB", "#FFFFFF"] },
-                { time: dayEnd, colors: ["#87CEEB", "#FFFFFF"] },
-                { time: sunsetStart, colors: ["#FFD700", "#FF4500"] },
-                { time: nightEnd2, colors: ["#000000", "#000033"] },
+                { time: 0, colors: ["#000000", "#000033"] },
+                { time: 240, colors: ["#000011", "#000044"] },
+                { time: 500, colors: ["#FF4500", "#FFD700"] },
+                { time: 680, colors: ["#87CEEB", "#FFFFFF"] },
+                { time: 780, colors: ["#87CEEB", "#FFFFFF"] },
+                { time: 960, colors: ["#87CEEB", "#FFFFFF"] },
+                { time: 1170, colors: ["#FFD700", "#FF4500"] },
+                { time: 1440, colors: ["#000000", "#000033"] },
             ];
 
             function interpolateColor(color1, color2, factor) {
@@ -124,7 +113,7 @@
                     }
                 }
 
-                const factor = (time - prev.time) / (next.time - prev.time);
+                const factor = Math.abs(time - prev.time) / (next.time - prev.time);
                 const color1 = interpolateColor(prev.colors[0], next.colors[0], factor);
                 const color2 = interpolateColor(prev.colors[1], next.colors[1], factor);
                 return [color1, color2];
